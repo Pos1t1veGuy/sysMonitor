@@ -40,11 +40,11 @@ class sysInfo:
 
     def get_ram(self) -> int:
         " RAM load percent "
-        return 50
+        return 93
 
     def get_cpu(self) -> int:
         " CPU load percent "
-        return 50
+        return 98
 
     def get(self) -> dict:
         return {
@@ -69,17 +69,19 @@ def config_file_exists_decorator(func):
 
 
 class Config:
-    def __init__(self, filepath: str, default: dict = {}, indent: str = 4, debug: bool = False, save_last: bool = True):
+    def __init__(self, filepath: str, default: dict = {}, indent: str = 4, debug: bool = False, set_default: bool = False):
         self.file = filepath
         self.default = default
         self.indent = indent
         self.debug = debug
         self.last_data = {}
-        self.save_last = save_last
 
-        if not os.path.isfile(self.file):
-            json.dump(self.data, open(self.file, 'w'), indent=self.indent)
+        if not os.path.isfile(self.file) or set_default:
+            json.dump(default, open(self.file, 'w'), indent=self.indent)
             print(f'Initialized default config file at {self.file}')
+
+        if 'debug' in self.data.keys():
+            self.debug = self.data['debug']
 
 
     @config_file_exists_decorator
@@ -103,8 +105,7 @@ class Config:
             for key, value in content.items():
                 if not key in first.keys():
                     print(f"Removed key: {key}={value}")
-        if self.save_last:
-            self.last_data = json.load( open(self.file, 'r') )
+        self.last_data = json.load( open(self.file, 'r') )
 
     @config_file_exists_decorator
     def move_to(self, filepath: str):
@@ -117,8 +118,7 @@ class Config:
 
         json.dump(data, open(self.file, 'w'), indent=self.indent)
 
-        if self.save_last:
-            self.last_data = json.load( open(self.file, 'r') )
+        self.last_data = json.load( open(self.file, 'r') )
         if self.debug:
             print(f"Moved file from {last_path} ro {self.file}")
 
@@ -127,11 +127,8 @@ class Config:
         if keys:
             return { key: value for key, value in json.load( open(self.file, 'r') ).items() if key in keys }
 
-        if self.save_last:
-            self.last_data = json.load( open(self.file, 'r') )
-            return dict(self.last_data)
-        else:
-            return dict(json.load( open(self.file, 'r') ))
+        self.last_data = json.load( open(self.file, 'r') )
+        return dict(self.last_data)
 
     @property
     def data(self) -> dict:

@@ -1,8 +1,45 @@
 {
+    "debug": false,
+    "auto_save_pos": false,
     "position": [
         1213,
         306
     ],
-    "size": "220x300",
-    "save_pos": false
+    "size": [
+        130,
+        300
+    ],
+    "mouse_button": 2,
+    "close_key": "Escape",
+    "restart_key": "Tab",
+    "save_pos_key": "space",
+    "CPURAM": {
+        "update_rate": 1000,
+        "CPU": {
+            "graph_height": 16,
+            "graph_color": "gray",
+            "graph_show": true,
+            "text_show": true
+        },
+        "RAM": {
+            "graph_height": 16,
+            "graph_color": "gray",
+            "graph_show": true,
+            "text_show": true
+        }
+    },
+    "disks": {
+        "update_rate": 5000,
+        "graph_height": 5,
+        "graph_color": "yellow",
+        "graph_show": true,
+        "text_show": true
+    },
+    "nets": {
+        "nets_update_rate": 5000,
+        "show_local_IP": true,
+        "show_external_IP": true,
+        "show_tcp_connections": true,
+        "show_udp_connections": true
+    }
 }

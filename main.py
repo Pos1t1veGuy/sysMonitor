@@ -1,7 +1,11 @@
 from tkinter import Tk, Label, Canvas, Frame
 import sys, os
 from utils import sysInfo, Config
+from uuid import uuid4
 
+
+def toWidth(x: int) -> int:
+    return x*config['size'][0]/125
 
 def default_label(text: str = 'label'):
     label = Label(root, text=text, fg="white", font=("Helvetica Bold", 12, "bold"))
@@ -26,7 +30,7 @@ def releasewin(event):
     button_pressed = False
 
 def hotkeys(event):
-    global debug
+    global config
     if button_pressed and event.keysym == 'Escape':
         root.destroy()
     elif button_pressed and event.keysym == 'Tab':
@@ -45,13 +49,13 @@ def save_coordinates(event):
             config.change(position=[root.winfo_rootx(), root.winfo_rooty()])
             last_saved_pos = [root.winfo_rootx(), root.winfo_rooty()]
 
-    if debug and last_pos != [root.winfo_rootx(), root.winfo_rooty()]:
+    if config['debug'] and last_pos != [root.winfo_rootx(), root.winfo_rooty()]:
         print(f'Moved to {[root.winfo_rootx(), root.winfo_rooty()]}')
 
     last_pos = [root.winfo_rootx(), root.winfo_rooty()]
 
 def create_graph(canvas, percentage, color, y_position, height):
-    width = int((root.winfo_width()-99) * percentage / 100)
+    width = int(( root.winfo_width() - toWidth(3) ) * percentage / 100)
     canvas.create_rectangle(0, y_position, width, y_position + height, fill=color, outline="")
 
 
@@ -96,34 +100,64 @@ def update_nets():
 
 root = Tk()
 root.overrideredirect(1)
-root.attributes("-topmost", True)
 root.configure(background="black")
 #root.attributes('-alpha', 0.4)
 root.wm_attributes("-transparentcolor", "black")
-root.wm_attributes("-topmost", 1)
-
-back_frame = Frame(root)
-back_frame.pack(side="bottom", fill="both", expand=True)
-
-label = Label(back_frame, text="TEXT")
-label.place(x=0, y=0)
+#root.wm_attributes("-topmost", 1)
 
 
 info = sysInfo()
 config = Config("config.json", default={
-    'position': [0,0],
-    'size': "220x280",
-    'save_pos': True
-}, debug=True)
+    'debug': False,
+    'auto_save_pos': False,
+
+    'position': [1213, 306],
+    'size': [130, 300],
+
+    'mouse_button': 2,
+    'close_key': 'Escape',
+    'restart_key': 'Tab',
+    'save_pos_key': 'space',
+
+    'CPURAM': {
+        'update_rate': 1000,
+        'CPU': {
+            'graph_height': 16,
+            'graph_color': "gray",
+            'graph_show': True,
+            'text_show': True,
+        },
+        'RAM': {
+            'graph_height': 16,
+            'graph_color': "gray",
+            'graph_show': True,
+            'text_show': True,
+        },
+    },
+    'disks': {
+        'update_rate': 5000,
+        'graph_height': 5,
+        'graph_color': "yellow",
+        'graph_show': True,
+        'text_show': True,
+    },
+    'nets': {
+        'nets_update_rate': 5000,
+        'show_local_IP': True,
+        'show_external_IP': True,
+        'show_tcp_connections': True,
+        'show_udp_connections': True,
+    },
+}, set_default=True)
 
 
-ram_label = default_label("RAM load percentage")
-ram_canvas = Canvas(root, width=root.winfo_width()+120, height=14, background="black")
+ram_label = default_label("RAM load")
+ram_canvas = Canvas(root, width=root.winfo_width()+toWidth(120), height=14, background="black")
 ram_canvas.pack(side="top", anchor="w")
 create_graph(ram_canvas, 50, "white", 0, 19)
 
-cpu_label = default_label("CPU load percentage")
-cpu_canvas = Canvas(root, width=root.winfo_width()+120, height=14, background="black")
+cpu_label = default_label("CPU load")
+cpu_canvas = Canvas(root, width=root.winfo_width()+toWidth(120), height=14, background="black")
 cpu_canvas.pack(side="top", anchor="w")
 create_graph(cpu_canvas, 50, "white", 0, 19)
 
@@ -131,7 +165,7 @@ disk_labels = []
 disk_canvases = []
 for i in range(len(info.get_disks())):
     disk_labels.append( default_label("disk") )
-    disk_canvas = Canvas(root, width=root.winfo_width()+120, height=3, background="black")
+    disk_canvas = Canvas(root, width=root.winfo_width()+toWidth(120), height=3, background="black")
     disk_canvas.pack(side="top", anchor="w")
     disk_canvases.append(disk_canvas)
 
@@ -145,29 +179,27 @@ tcp_label = default_label("TCP ports")
 udp_label = default_label("UDP ports")
 
 
-debug = True
-
-x2, xr2 = 0, True
-x1, xr1 = 0, True
 button_pressed = False
 
 last_pos = config['position']
 last_saved_pos = config['position']
 
-if debug:
+if config['debug']:
     print(f"Initialized at {config['position']} with size {config['size']}")
 
 
-root.geometry(config['size'])
+root.geometry(f"{config['size'][0]}x{config['size'][1]}")
 root.geometry(f"+{config['position'][0]}+{config['position'][1]}")
 
-root.bind('<Button-2>', clickwin)
-root.bind('<B2-Motion>', dragwin)
-root.bind('<ButtonRelease-2>', save_coordinates)
+root.bind(f'<Button-{config["mouse_button"]}>', clickwin)
+root.bind(f'<B{config["mouse_button"]}-Motion>', dragwin)
+root.bind(f'<ButtonRelease-{config["mouse_button"]}>', save_coordinates)
 
 root.bind('<Escape>', hotkeys)
 root.bind('<Tab>', hotkeys)
+
 root.bind('<space>', hotkeys)
+
 
 update_cpuram()
 update_disks()
@@ -175,3 +207,4 @@ update_nets()
 
 
 root.mainloop()
+root.lower()
