@@ -1,9 +1,11 @@
 from tkinter import Tk, Label, Canvas, Frame
+from pathlib import Path
+
 import sys, os
 import psutil
 import keyboard as kb
 
-from utils import sysInfo, Config
+from .utils import sysInfo, Config
 
 
 def hotkeys(e):
@@ -138,13 +140,20 @@ root.configure(background="black")
 root.wm_attributes("-transparentcolor", "black")
 
 
-config = Config("config.json", default={
+roaming_path = Path.home() / "AppData" / "Roaming"
+app_dir = roaming_path / "sysMonitor"
+
+if not os.path.isdir(app_dir):
+    os.mkdir(app_dir)
+
+
+config = Config(app_dir / "monitor_config.json", default={
     'debug': True,
     'auto_save_pos': False,
     'always_on_top': False,
     'transparency': 0.8,
 
-    'position': [1213, 306],
+    'position': [0, 0],
     'size': [130, 300],
     'text_color': 'white',
 
