@@ -1,13 +1,17 @@
-import tkinter as tk
+import keyboard
+from tkinter import Tk, Label
 
-root = tk.Tk()
+def on_key_event(e):
+    if keyboard.is_pressed('shift+z'):
+        print('shift+z pressed')
 
-# Создаем первый Label (нижний)
-label1 = tk.Label(root, text="Нижний Label", bg="lightblue")
-label1.place(x=50, y=50)
+# Регистрируем обработчик событий клавиаZтуры
+keyboard.hook(on_key_event)
 
-# Создаем второй Label (верхний)
-label2 = tk.Label(root, text="Верхний Label", bg="lightgreen")
-label2.place(x=50, y=40)
+# Создаем окно Tkinter (пример)
+root = Tk()
+label = Label(root, text="Hello, Tkinter!")
+label.pack()
 
+# Запускаем главный цикл Tkinter
 root.mainloop()

@@ -1,30 +1,36 @@
 import os
 import psutil
 import json
+import requests as rq
+
+from socket import socket, AF_INET, SOCK_STREAM, SOCK_DGRAM
 
 
 class sysInfo:
-    def __init__(self, cpuram_update_rate: int = 100,
-            disks_update_rate: int = 100,
-            nets_update_rate: int = 100,
-            ):
-        self.cpuram_update_rate = cpuram_update_rate
-        self.disks_update_rate = disks_update_rate
-        self.nets_update_rate = nets_update_rate
+    @staticmethod
+    def get_local_ip() -> str:
+        s = socket(AF_INET, SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        return local_ip
 
-    def get_local_ip(self) -> str:
-        return "xx.xx.xx.xx"
+    @staticmethod
+    def get_external_ip() -> str:
+        return rq.get("https://httpbin.org/ip").json()['origin']
 
-    def get_external_ip(self) -> str:
-        return "xx.xx.xx.xx"
+    @staticmethod
+    def get_tcp_connections() -> int:
+        connections = psutil.net_connections(kind='inet')
+        return len([conn for conn in connections if conn.status == psutil.CONN_ESTABLISHED and conn.type == SOCK_STREAM])
 
-    def get_tcp_connections(self) -> int:
-        return 0
+    @staticmethod
+    def get_udp_connections() -> int:
+        connections = psutil.net_connections(kind='inet')
+        return len([conn for conn in connections if conn.status == psutil.CONN_NONE and conn.type == SOCK_DGRAM])
 
-    def get_udp_connections(self) -> int:
-        return 0
-
-    def get_disks(self) -> dict:
+    @staticmethod
+    def get_disks() -> dict:
         partitions = psutil.disk_partitions()
         disk_info = []
 
@@ -38,21 +44,14 @@ class sysInfo:
 
         return disk_info
 
-    def get_ram(self) -> int:
-        " RAM load percent "
-        return 93
-
-    def get_cpu(self) -> int:
-        " CPU load percent "
-        return 98
-
-    def get(self) -> dict:
+    @staticmethod
+    def get() -> dict:
         return {
-            "extIP": self.get_external_ip(),
-            "locIP": self.get_local_ip(),
-            "tcpconns": self.get_tcp_connections(),
-            "udpconns": self.get_udp_connections(),
-            "disks": self.get_external_ip(),
+            "extIP": sysInfo.get_external_ip(),
+            "locIP": sysInfo.get_local_ip(),
+            "tcpconns": sysInfo.get_tcp_connections(),
+            "udpconns": sysInfo.get_udp_connections(),
+            "disks": sysInfo.get_external_ip(),
         }
 
 
@@ -100,7 +99,7 @@ class Config:
                     print(f"Added new key: {key}={value}")
                 else:
                     if value != content[key]:
-                        print(f"Changed value for key {key}, from {value} to {content[key]}")
+                        print(f"Changed value for {key}, from {value} to {content[key]}")
 
             for key, value in content.items():
                 if not key in first.keys():
