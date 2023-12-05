@@ -75,12 +75,13 @@ class Config:
         self.debug = debug
         self.last_data = {}
 
-        if not os.path.isfile(self.file) or set_default:
-            json.dump(default, open(self.file, 'w'), indent=self.indent)
-            print(f'Initialized default config file at {self.file}')
-
         if 'debug' in self.data.keys():
             self.debug = self.data['debug']
+
+        if not os.path.isfile(self.file) or set_default:
+            json.dump(default, open(self.file, 'w'), indent=self.indent)
+            if self.debug:
+                print(f'Initialized default config file at {self.file}')
 
 
     @config_file_exists_decorator
@@ -88,8 +89,11 @@ class Config:
         content = json.load( open(self.file, 'r') )
         first = json.load( open(self.file, 'r') )
 
+
         for key, value in kwargs.items():
-            content[key] = value
+            keys = key.split("__")
+            self._update_nested(content, keys, value)
+
 
         json.dump(content, open(self.file, 'w'), indent=self.indent)
 
@@ -132,10 +136,19 @@ class Config:
     @property
     def data(self) -> dict:
         return self.read()
+
+    def _update_nested(self, dictionary: dict, keys: list, value):
+        if len(keys) == 1:
+            dictionary[keys[0]] = value
+        else:
+            first_key, remaining_keys = keys[0], keys[1:]
+            if first_key not in dictionary:
+                dictionary[first_key] = {}
+            self._update_nested(dictionary[first_key], remaining_keys, value)
     
 
     def __str__(self):
-        return str(self.data)
+        return json.dumps(self.data, indent=self.indent)
 
     def __dict__(self):
         return self.data
