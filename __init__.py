@@ -356,11 +356,11 @@ for i in range(len(sysInfo.get_disks())):
         disk_canvases.append(disk_canvas)
 
 if config['local_IP']['show']:
-    locip = default_label("locIP:", config['local_IP']['color'])
+    locip = default_label(config['local_IP']['label'], config['local_IP']['color'])
     locip_label = default_label(f"    {config['local_IP']['show']}")
 
 if config['external_IP']['show']:
-    extip = default_label("extIP:", config['external_IP']['color'])
+    extip = default_label(config['external_IP']['label'], config['external_IP']['color'])
     extip_label = default_label(f"    {config['external_IP']['show']}")
 
 if config['TCP']['show']:
