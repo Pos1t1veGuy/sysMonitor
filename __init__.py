@@ -311,78 +311,81 @@ config = Config(app_dir / "monitor_config.json", default={
 })
 
 root = Tk()
-root.geometry(f"+{config['window']['position'][0]}+{config['window']['position'][1]}")
+try:
+    root.geometry(f"+{config['window']['position'][0]}+{config['window']['position'][1]}")
 
 
-upline = Frame(root, height=config['up_line']['height'], background=config['up_line']['color'])
-upline.pack(fill="x")
+    upline = Frame(root, height=config['up_line']['height'], background=config['up_line']['color'])
+    upline.pack(fill="x")
 
 
-if config['CPU']['text']['show']:
-    cpu_label = default_label("CPU load", config['CPU']['text']['color'])
-    cpu_canvas = Canvas(root, width=root.winfo_width()+toWidth(120),
-        height=config['CPU']['graph']['height']-2,
-        background=config['window']['background_color'],
-        highlightbackground=config['CPU']['graph']['border_color'],
-        highlightthickness=config['CPU']['graph']['border_width'])
-    cpu_canvas.pack(side="top", anchor="w")
-if config['CPU']['graph']['show']:
-    update_graph(cpu_canvas, 50, config['CPU']['graph']['color'], 0, 19)
-
-if config['RAM']['text']['show']:
-    ram_label = default_label("RAM load", config['RAM']['text']['color'])
-    ram_canvas = Canvas(root, width=root.winfo_width()+toWidth(120),
-        height=config['RAM']['graph']['height']-2,
-        background=config['window']['background_color'],
-        highlightbackground=config['RAM']['graph']['border_color'],
-        highlightthickness=config['RAM']['graph']['border_width'])
-    ram_canvas.pack(side="top", anchor="w")
-if config['RAM']['graph']['show']:
-    update_graph(ram_canvas, 50, config['RAM']['graph']['color'], 0, 19)
-
-disk_labels = []
-disk_canvases = []
-for i in range(len(sysInfo.get_disks())):
-    if config['disks']['text']['show']:
-        disk_labels.append( default_label("disk") )
-
-    if config['disks']['graph']['show']:
-        disk_canvas = Canvas(root, width=root.winfo_width()+toWidth(120),
-            height=config['disks']['graph']['height']-2,
+    if config['CPU']['text']['show']:
+        cpu_label = default_label("CPU load", config['CPU']['text']['color'])
+        cpu_canvas = Canvas(root, width=root.winfo_width()+toWidth(120),
+            height=config['CPU']['graph']['height']-2,
             background=config['window']['background_color'],
-            highlightbackground=config['disks']['graph']['border_color'],
-            highlightthickness=config['disks']['graph']['border_width'])
-        disk_canvas.pack(side="top", anchor="w")
-        disk_canvases.append(disk_canvas)
+            highlightbackground=config['CPU']['graph']['border_color'],
+            highlightthickness=config['CPU']['graph']['border_width'])
+        cpu_canvas.pack(side="top", anchor="w")
+    if config['CPU']['graph']['show']:
+        update_graph(cpu_canvas, 50, config['CPU']['graph']['color'], 0, 19)
 
-if config['local_IP']['show']:
-    locip = default_label(config['local_IP']['label'], config['local_IP']['color'])
-    locip_label = default_label(f"    {config['local_IP']['show']}")
+    if config['RAM']['text']['show']:
+        ram_label = default_label("RAM load", config['RAM']['text']['color'])
+        ram_canvas = Canvas(root, width=root.winfo_width()+toWidth(120),
+            height=config['RAM']['graph']['height']-2,
+            background=config['window']['background_color'],
+            highlightbackground=config['RAM']['graph']['border_color'],
+            highlightthickness=config['RAM']['graph']['border_width'])
+        ram_canvas.pack(side="top", anchor="w")
+    if config['RAM']['graph']['show']:
+        update_graph(ram_canvas, 50, config['RAM']['graph']['color'], 0, 19)
 
-if config['external_IP']['show']:
-    extip = default_label(config['external_IP']['label'], config['external_IP']['color'])
-    extip_label = default_label(f"    {config['external_IP']['show']}")
+    disk_labels = []
+    disk_canvases = []
+    for i in range(len(sysInfo.get_disks())):
+        if config['disks']['text']['show']:
+            disk_labels.append( default_label("disk") )
 
-if config['TCP']['show']:
-    tcp_label = default_label("TCP ports", config['TCP']['color'])
-if config['UDP']['show']:
-    udp_label = default_label("UDP ports", config['UDP']['color'])
+        if config['disks']['graph']['show']:
+            disk_canvas = Canvas(root, width=root.winfo_width()+toWidth(120),
+                height=config['disks']['graph']['height']-2,
+                background=config['window']['background_color'],
+                highlightbackground=config['disks']['graph']['border_color'],
+                highlightthickness=config['disks']['graph']['border_width'])
+            disk_canvas.pack(side="top", anchor="w")
+            disk_canvases.append(disk_canvas)
+
+    if config['local_IP']['show']:
+        locip = default_label(config['local_IP']['label'], config['local_IP']['color'])
+        locip_label = default_label(f"    {config['local_IP']['show']}")
+
+    if config['external_IP']['show']:
+        extip = default_label(config['external_IP']['label'], config['external_IP']['color'])
+        extip_label = default_label(f"    {config['external_IP']['show']}")
+
+    if config['TCP']['show']:
+        tcp_label = default_label("TCP ports", config['TCP']['color'])
+    if config['UDP']['show']:
+        udp_label = default_label("UDP ports", config['UDP']['color'])
 
 
-always_on_top = False
-button_pressed = False
+    always_on_top = False
+    button_pressed = False
 
-last_pos = config['window']['position']
-last_saved_pos = config['window']['position']
+    last_pos = config['window']['position']
+    last_saved_pos = config['window']['position']
 
+    if config['debug']:
+        print(f"Initialized at {config['window']['position']} with size {config['window']['size']}")
 
-if config['debug']:
-    print(f"Initialized at {config['window']['position']} with size {config['window']['size']}")
+    root.bind(f"<Button-{config['window']['mouse_button']}>", clickwin)
+    root.bind(f"<B{config['window']['mouse_button']}-Motion>", dragwin)
+    root.bind(f"<ButtonRelease-{config['window']['mouse_button']}>", save_coordinates)
 
-
-root.bind(f"<Button-{config['window']['mouse_button']}>", clickwin)
-root.bind(f"<B{config['window']['mouse_button']}-Motion>", dragwin)
-root.bind(f"<ButtonRelease-{config['window']['mouse_button']}>", save_coordinates)
+except KeyError as key:
+    print(f'Invalid config, {key} key is missing. Config will sets to default if user delete it by path: "{config.file}"')
+    exit()
 
 root.bind("<Key>", th_hotkeys)
 
@@ -399,4 +402,7 @@ update_tcp()
 update_udp()
 
 
-root.mainloop()
+try:
+    root.mainloop()
+except KeyboardInterrupt:
+    print('Stopped by user')

@@ -59,7 +59,7 @@ def config_file_exists_decorator(func):
     def wrapper(self, *args, **kwargs):
 
         if not os.path.isfile(self.file):
-            json.dump(self.data, open(self.file, 'w'), indent=self.indent)
+            json.dump(self.last_data, open(self.file, 'w'), indent=self.indent)
             print(f'Initialized default config file at {self.file}')
 
         return func(self, *args, **kwargs)
@@ -73,13 +73,13 @@ class Config:
         self.default = default
         self.indent = indent
         self.debug = debug
-        self.last_data = {}
+        self.last_data = default
 
         if 'debug' in self.data.keys():
             self.debug = self.data['debug']
 
         if not os.path.isfile(self.file) or set_default:
-            json.dump(default, open(self.file, 'w'), indent=self.indent)
+            self.set_default()
             if self.debug:
                 print(f'Initialized default config file at {self.file}')
 
@@ -137,6 +137,9 @@ class Config:
     def data(self) -> dict:
         return self.read()
 
+    def set_default(self) -> dict:
+        json.dump(self.default, open(self.file, 'w'), indent=self.indent)
+
     def _update_nested(self, dictionary: dict, keys: list, value):
         if len(keys) == 1:
             dictionary[keys[0]] = value
@@ -160,7 +163,3 @@ class Config:
 
     def __repr__(self):
         return f"Config(file={self.file}, data={self.data})"
-
-
-if __name__ == '__main__':
-    print(sysInfo().get())
