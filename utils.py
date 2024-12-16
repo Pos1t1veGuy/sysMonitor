@@ -17,7 +17,10 @@ class sysInfo:
 
     @staticmethod
     def get_external_ip() -> str:
-        return rq.get("https://httpbin.org/ip").json()['origin']
+        try:
+            return rq.get("https://httpbin.org/ip").json()['origin']
+        except:
+            return rq.get('http://ip-api.com/json').json()['query']
 
     @staticmethod
     def get_tcp_connections() -> int:

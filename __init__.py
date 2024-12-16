@@ -177,7 +177,12 @@ def update_eip():
     cfg = config.data['external_IP']
 
     if cfg['show']:
-        extip_label.config(text=f"    {sysInfo.get_external_ip()}", fg=cfg['color'])
+        try:
+            ip = sysInfo.get_external_ip()
+        except:
+            ip = 'N/A'
+
+        extip_label.config(text=f"    {ip}", fg=cfg['color'])
 
     root.after(cfg['update_rate'], update_eip)
 
